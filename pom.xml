@@ -36,7 +36,7 @@
     <palantir-java-format.version>2.103.0</palantir-java-format.version>
     <jacoco.version>0.8.16</jacoco.version>
     <!-- Minimum line coverage enforced by `mvn verify` -->
-    <jacoco.minimum.line.coverage>0.80</jacoco.minimum.line.coverage>
+    <jacoco.minimum.line.coverage>0.85</jacoco.minimum.line.coverage>
   </properties>
 
   <dependencies>
@@ -173,6 +173,8 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
+          <!-- @{argLine} keeps the JaCoCo agent; Mockito attaches its own agent for inline mocks -->
+          <argLine>@{argLine} -XX:+EnableDynamicAgentLoading -Xshare:off</argLine>
           <includes>
             <include>**/*Test.java</include>
           </includes>

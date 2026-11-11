@@ -1,0 +1,24 @@
+# Test profile. Database and JWT secret are injected by IntegrationTest (env vars / random value).
+tesoro:
+  security:
+    bcrypt-strength: 4
+  jobs:
+    enabled: false
+  rate-limit:
+    enabled: false
+  fx:
+    provider: mock
+    mock:
+      bid: "1400.00"
+      ask: "1450.00"
+
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 30
+
+logging:
+  level:
+    root: WARN
+    com.tesoro: INFO
+    tesoro.events: WARN
