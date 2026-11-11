@@ -19,6 +19,9 @@ public final class CurrencyConverter {
 
     public static final RoundingMode ROUNDING = RoundingMode.DOWN;
 
+    /** Decimal places of the informative rate returned to clients (the math uses the exact value). */
+    public static final int RATE_SCALE = 10;
+
     private CurrencyConverter() {}
 
     public static Conversion convert(Money source, CurrencyCode target, ExchangeQuote quote) {
@@ -41,7 +44,7 @@ public final class CurrencyConverter {
             exact = source.amount().multiply(rate, PRECISION);
         } else {
             // User buys the base currency (e.g. ARS -> USD): the platform sells at the ask.
-            rate = BigDecimal.ONE.divide(quote.ask(), PRECISION);
+            rate = BigDecimal.ONE.divide(quote.ask(), RATE_SCALE, RoundingMode.HALF_EVEN);
             exact = source.amount().divide(quote.ask(), PRECISION);
         }
 

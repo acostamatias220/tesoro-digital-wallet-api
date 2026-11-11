@@ -32,6 +32,7 @@ class CurrencyConverterTest {
         Conversion conversion = CurrencyConverter.convert(Money.of("1000", ARS), USD, quote);
         assertThat(conversion.target()).isEqualTo(Money.of("0.68", USD));
         assertThat(conversion.source()).isEqualTo(Money.of("1000", ARS));
+        assertThat(conversion.rate()).isEqualByComparingTo("0.0006896552");
     }
 
     @ParameterizedTest
