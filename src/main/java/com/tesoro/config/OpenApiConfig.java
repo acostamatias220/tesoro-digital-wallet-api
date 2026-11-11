@@ -6,6 +6,7 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,6 +29,11 @@ class OpenApiConfig {
                                         .type(SecurityScheme.Type.HTTP)
                                         .scheme("bearer")
                                         .bearerFormat("JWT")))
-                .addSecurityItem(new SecurityRequirement().addList("bearer"));
+                .addSecurityItem(new SecurityRequirement().addList("bearer"))
+                // Display order in Swagger UI
+                .addTagsItem(new Tag().name("Auth"))
+                .addTagsItem(new Tag().name("Operaciones"))
+                .addTagsItem(new Tag().name("Cuentas"))
+                .addTagsItem(new Tag().name("Administración"));
     }
 }
