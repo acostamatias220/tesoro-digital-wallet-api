@@ -1,0 +1,169 @@
+### Tesoro API — HTTP client collection (IntelliJ HTTP Client / VS Code "REST Client" compatible syntax)
+# 1. Start the app with SEED_DEMO_DATA=true (see README).
+# 2. Copy http-client.private.env.example.json to http-client.private.env.json (git-ignored)
+#    and fill in the passwords.
+# 3. Run the requests in order; tokens are stored automatically.
+
+### Login (demo user)
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+    client.global.set("refreshToken", response.body.refreshToken);
+%}
+
+### My wallets
+GET {{baseUrl}}/api/v1/accounts
+Authorization: Bearer {{accessToken}}
+
+> {%
+    client.global.set("arsWalletId", response.body.find(a => a.currency === "ARS").id);
+%}
+
+### Deposit (simulated incoming bank transfer)
+POST {{baseUrl}}/api/v1/deposits
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{$uuid}}
+Content-Type: application/json
+
+{
+  "currency": "ARS",
+  "amount": 25000.00
+}
+
+### P2P transfer — run it twice: the second call is replayed (Idempotent-Replayed: true)
+POST {{baseUrl}}/api/v1/transfers
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: transfer-demo-0001
+Content-Type: application/json
+
+{
+  "recipientEmail": "{{recipientEmail}}",
+  "currency": "ARS",
+  "amount": 1500.50,
+  "description": "Entradas del recital"
+}
+
+> {% client.global.set("transactionId", response.body.transactionId); %}
+
+### Same key, different body -> 422 idempotency-key-reused
+POST {{baseUrl}}/api/v1/transfers
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: transfer-demo-0001
+Content-Type: application/json
+
+{
+  "recipientEmail": "{{recipientEmail}}",
+  "currency": "ARS",
+  "amount": 9999.00
+}
+
+### Quote a conversion (no money moves)
+GET {{baseUrl}}/api/v1/fx/quote?from=ARS&to=USD&amount=14500
+Authorization: Bearer {{accessToken}}
+
+### Convert ARS -> USD
+POST {{baseUrl}}/api/v1/conversions
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{$uuid}}
+Content-Type: application/json
+
+{
+  "fromCurrency": "ARS",
+  "toCurrency": "USD",
+  "amount": 14500.00
+}
+
+### Withdrawal larger than the balance -> 422 insufficient-funds (problem+json)
+POST {{baseUrl}}/api/v1/withdrawals
+Authorization: Bearer {{accessToken}}
+Idempotency-Key: {{$uuid}}
+Content-Type: application/json
+
+{
+  "currency": "USD",
+  "amount": 999999.00
+}
+
+### Statement, filtered and paginated
+GET {{baseUrl}}/api/v1/accounts/{{arsWalletId}}/movements?type=TRANSFER&page=0&size=10
+Authorization: Bearer {{accessToken}}
+
+### Journal entry of a transaction (all postings)
+GET {{baseUrl}}/api/v1/transactions/{{transactionId}}
+Authorization: Bearer {{accessToken}}
+
+### Rotate the refresh token
+POST {{baseUrl}}/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refreshToken}}"
+}
+
+> {%
+    client.global.set("accessToken", response.body.accessToken);
+    client.global.set("refreshToken", response.body.refreshToken);
+%}
+
+### ---------- Admin ----------
+
+### Admin login
+POST {{baseUrl}}/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{adminEmail}}",
+  "password": "{{adminPassword}}"
+}
+
+> {% client.global.set("adminToken", response.body.accessToken); %}
+
+### Run the ledger reconciliation now
+POST {{baseUrl}}/api/v1/admin/reconciliations
+Authorization: Bearer {{adminToken}}
+
+### System accounts (balances derived from postings)
+GET {{baseUrl}}/api/v1/admin/ledger/system-accounts
+Authorization: Bearer {{adminToken}}
+
+### Freeze a wallet
+PATCH {{baseUrl}}/api/v1/admin/accounts/{{arsWalletId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "FROZEN",
+  "reason": "Revisión manual"
+}
+
+### Reactivate it
+PATCH {{baseUrl}}/api/v1/admin/accounts/{{arsWalletId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "ACTIVE"
+}
+
+### Audit log (filter by action)
+GET {{baseUrl}}/api/v1/admin/audit-log?action=ACCOUNT_STATUS_CHANGED
+Authorization: Bearer {{adminToken}}
+
+### Outbox events
+GET {{baseUrl}}/api/v1/admin/outbox?size=10
+Authorization: Bearer {{adminToken}}
+
+### ---------- Observability ----------
+
+### Health
+GET {{baseUrl}}/actuator/health
+
+### Prometheus metrics
+GET {{baseUrl}}/actuator/prometheus
