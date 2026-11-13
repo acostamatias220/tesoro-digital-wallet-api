@@ -14,7 +14,7 @@ Backend de una **billetera digital en pesos y dólares**: cada usuario tiene una
 
 ---
 
-## ✨ Funcionalidades
+##  Funcionalidades
 
 - **Usuarios y billeteras**: registro, login y una billetera por moneda (`ARS` y `USD`) creada automáticamente.
 - **Operaciones**: depósitos, extracciones, **transferencias P2P** (por email del destinatario) y **conversiones ARS ⇄ USD** con cotización de compra/venta.
@@ -30,7 +30,7 @@ Backend de una **billetera digital en pesos y dólares**: cada usuario tiene una
 - **Seguridad**: JWT de acceso (HS256) + **refresh tokens opacos con rotación** y revocación de toda la familia si se detecta reutilización, BCrypt, **rate limiting** con Bucket4j, errores en formato **Problem Details** (RFC 9457) y `404` en lugar de `403` para recursos ajenos.
 - **Observabilidad**: Actuator (`health`, `liveness`, `readiness`), métricas **Prometheus** propias (`tesoro_movements_total`, `tesoro_outbox_pending`, `tesoro_reconciliation_issues`, …) y documentación **OpenAPI / Swagger UI**.
 
-## 🧰 Stack
+##  Stack
 
 | Capa | Tecnologías |
 | --- | --- |
@@ -43,7 +43,7 @@ Backend de una **billetera digital en pesos y dólares**: cada usuario tiene una
 | Calidad | JUnit 5, AssertJ, Mockito, ArchUnit, JaCoCo, Spotless (palantir-java-format) |
 | Infra | Maven Wrapper, Docker multi-stage (usuario no root), docker-compose, GitHub Actions |
 
-## 🏛️ Arquitectura
+##  Arquitectura
 
 Arquitectura **hexagonal** (puertos y adaptadores). El dominio no depende de Spring ni de JPA, y la aplicación solo conoce interfaces (*ports*). Las reglas de dependencia se verifican con **ArchUnit** en cada build.
 
@@ -93,7 +93,7 @@ src/main/java/com/tesoro
 └── config/          # propiedades, OpenAPI, reloj, bootstrap del admin y datos demo
 ```
 
-## 🗄️ Modelo de datos
+##  Modelo de datos
 
 ```mermaid
 erDiagram
@@ -172,7 +172,7 @@ erDiagram
     }
 ```
 
-## 📒 Cómo funciona el ledger
+##  Cómo funciona el ledger
 
 Cada movimiento de dinero es un **asiento** (`journal_entries`) con dos o más **partidas** (`postings`). Cada partida es un débito o un crédito sobre una cuenta y, **por cada moneda, la suma de débitos es igual a la suma de créditos**. El dinero nunca aparece ni desaparece: solo se mueve entre cuentas.
 
@@ -226,7 +226,7 @@ La **conciliación** (cada 10 minutos por defecto, en una transacción `REPEATAB
 - En las conversiones el resultado se redondea **hacia abajo** (`RoundingMode.DOWN`): la plataforma nunca crea dinero de la nada por redondeo.
 - USD → ARS usa la cotización de **compra**; ARS → USD, la de **venta**. La tasa efectiva informada usa escala 10 con `HALF_EVEN`.
 
-## 🔁 Idempotencia y concurrencia
+##  Idempotencia y concurrencia
 
 ```mermaid
 sequenceDiagram
@@ -307,7 +307,7 @@ La imagen es **multi-stage** (build con Maven, runtime `eclipse-temurin:21-jre-a
 
 En [`http/tesoro.http`](http/tesoro.http) hay un recorrido completo (login, depósito, transferencia, reintento idempotente, conversión, extracto y endpoints de admin) para el cliente HTTP de IntelliJ o la extensión REST Client de VS Code. Las credenciales van en `http/http-client.private.env.json` (ignorado por git, ver el `.example`).
 
-## 🧪 Tests
+##  Tests
 
 ```bash
 # los tests de integración usan una base PostgreSQL real
@@ -325,7 +325,7 @@ export TEST_DB_PASSWORD=<tu-password>
 - **Integración** (`*IT`) contra PostgreSQL real con la app levantada en un puerto aleatorio: auth y rotación de tokens, operaciones, idempotencia, **concurrencia**, integridad del ledger (triggers), administración, rate limiting y observabilidad.
 - **JaCoCo** con umbral mínimo de cobertura de líneas y **Spotless** para el formato.
 
-## ⚙️ Variables de entorno
+##  Variables de entorno
 
 | Variable | Default | Descripción |
 | --- | --- | --- |
@@ -344,7 +344,7 @@ export TEST_DB_PASSWORD=<tu-password>
 | `SEED_DEMO_DATA` / `SEED_PASSWORD` | `false` / vacío | Datos de demo |
 | `FORWARD_HEADERS_STRATEGY` | `none` | `framework` si corre detrás de un proxy |
 
-## 📡 API
+##  API
 
 Todas las rutas bajo `/api/v1`. Los `POST` de operaciones requieren `Authorization: Bearer …` e `Idempotency-Key`.
 
@@ -370,7 +370,7 @@ Los errores siguen **Problem Details** con un `code` estable:
 
 ![Problem Details](docs/screenshots/problem-details.png)
 
-## 📸 Capturas
+##  Capturas
 
 | Transferencia | Extracto |
 | --- | --- |
@@ -380,6 +380,6 @@ Los errores siguen **Problem Details** con un `code` estable:
 | --- | --- |
 | ![Cuentas del sistema](docs/screenshots/system-accounts.png) | ![Conciliación](docs/screenshots/reconciliation.png) |
 
-## 📄 Licencia
+##  Licencia
 
 [MIT](LICENSE) © 2026 Matías Acosta
